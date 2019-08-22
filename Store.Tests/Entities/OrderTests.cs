@@ -1,84 +1,110 @@
 ﻿using Store.Domain.Entities;
-using System.Collections.Generic;
+using Store.Domain.Enums;
+using System;
 using Xunit;
 
 namespace Store.Tests.Entities
 {
     public class OrderTests
     {
-        private Customer CUSTOMER = new Customer("Ian Pacheco", "ianpacheco@me.com");
-        private Order ORDER => new Order(CUSTOMER, 0, null);
+        private readonly Customer CUSTOMER = new Customer("Ian Pacheco", "ianpacheco@me.com");
+        private readonly Product PRODUCT = new Product("Cerveja", 10, true);
+        private readonly Discount DISCOUNT = new Discount(10, DateTime.Now.AddDays(5));
+        private readonly Discount EXPIRE_DISCOUNT = new Discount(10, DateTime.Now.AddDays(-5));
 
         [Fact]
         public void ShouldBeGenerateNewValidOrder8CharNumber()
         {
+            var ORDER = new Order(CUSTOMER, 0, null);
             Assert.Equal(8, ORDER.Number.Length);
         }
 
         [Fact]
         public void ShouldBeStatusWaitingPaymentWhenGivenNewOrder()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 0, null);
+            Assert.Equal(EOrderStatus.WaitingPayment, ORDER.Status);
         }
 
         [Fact]
         public void ShouldBeStatusWaitingDeliveryWhenOrderPaid()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 0, null);
+            ORDER.AddItem(PRODUCT, 1);
+            ORDER.Pay(10);
+            Assert.Equal(EOrderStatus.WaitingDelivery, ORDER.Status);
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeStatusCanceledWhenStatusCanceled()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 0, null);
+            ORDER.Cancel();
+            Assert.Equal(EOrderStatus.Canceled, ORDER.Status);
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldNotBeAddNewItemWithoutProductAdded()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 0, null);
+            ORDER.AddItem(null, 10);
+            Assert.Equal(0, ORDER.Itens.Count);
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldNotAddItemWithoutQuantityLikeZeroOrBelow()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 0, null);
+            ORDER.AddItem(PRODUCT, 0);
+            Assert.Equal(0, ORDER.Itens.Count);
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeTotalLike50WhenNewValidOrder()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 10, DISCOUNT);
+            ORDER.AddItem(PRODUCT, 5);
+            Assert.Equal(50, ORDER.Total());
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeTotaLike60WhenGivenExpiredDiscount()
         {
-            Assert.True(false, "message");
+            var ORDER_EXD = new Order(CUSTOMER, 10, EXPIRE_DISCOUNT);
+            ORDER_EXD.AddItem(PRODUCT, 5);
+            Assert.Equal(60, ORDER_EXD.Total());
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeTotalLike60WhenGivenAnInvalidDiscount()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 10, null);
+            ORDER.AddItem(PRODUCT, 5);
+            Assert.Equal(60, ORDER.Total());
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeTotalLike50WhenDiscountLike10()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 10, DISCOUNT);
+            ORDER.AddItem(PRODUCT, 5);
+            Assert.Equal(50, ORDER.Total());
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeTotalLike60WhenDeliveryFeeBeLike10()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(CUSTOMER, 10, DISCOUNT);
+            ORDER.AddItem(PRODUCT, 6);
+            Assert.Equal(60, ORDER.Total());
         }
 
-        [Fact]        
+        [Fact]
         public void ShouldBeInvalidWhenOrderWithoutCustomer()
         {
-            Assert.True(false, "message");
+            var ORDER = new Order(null, 10, DISCOUNT);
+            ORDER.AddItem(PRODUCT, 5);
+            Assert.False(ORDER.Valid);
         }
     }
 }
